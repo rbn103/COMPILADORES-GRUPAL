@@ -1,14 +1,11 @@
-# app.py
-import os
-import sys
-
-# Agregar el directorio actual al path de Python
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# app.py - Punto de entrada de la aplicación MVC
+# Responsabilidad: Inicializar el servidor Flask y definir las rutas
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+import os
 
-# Cambiar la forma de importar - importación directa
+# Importar el controlador
 from controllers.compilador_controller import CompiladorController
 
 # Crear la aplicación Flask
@@ -51,13 +48,9 @@ def servir_index():
     """
     Sirve el archivo index.html desde la carpeta views
     """
-    index_path = os.path.join(BASE_DIR, 'views', 'index.html')
-    try:
-        with open(index_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        return content, 200, {'Content-Type': 'text/html'}
-    except FileNotFoundError:
-        return jsonify({'error': f'No se encontró index.html en {index_path}'}), 404
+    return send_from_directory('views', 'index.html')
+
+
 # ============================================================
 # INICIO DEL SERVIDOR
 # ============================================================
