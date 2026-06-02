@@ -51,13 +51,13 @@ def servir_index():
     """
     Sirve el archivo index.html desde la carpeta views
     """
-    import os
-    template_path = os.path.join('views', 'index.html')
-    if os.path.exists(template_path):
-        return send_from_directory('views', 'index.html')
-    else:
-        return jsonify({'error': 'index.html no encontrado'}), 404
-
+    index_path = os.path.join(BASE_DIR, 'views', 'index.html')
+    try:
+        with open(index_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return content, 200, {'Content-Type': 'text/html'}
+    except FileNotFoundError:
+        return jsonify({'error': f'No se encontró index.html en {index_path}'}), 404
 # ============================================================
 # INICIO DEL SERVIDOR
 # ============================================================
