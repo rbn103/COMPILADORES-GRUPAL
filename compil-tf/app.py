@@ -12,7 +12,7 @@ from flask_cors import CORS
 from controllers.compilador_controller import CompiladorController
 
 # Crear la aplicación Flask
-app = Flask(__name__, static_folder='static', template_folder='views')
+app = Flask(__name__, static_folder='static', template_folder='vista')
 CORS(app)
 
 # Instanciar el controlador (única instancia)
@@ -49,9 +49,9 @@ def health():
 @app.route('/', methods=['GET'])
 def servir_index():
     """
-    Sirve el archivo index.html desde la carpeta views
+    Sirve el archivo index.html desde la carpeta vista
     """
-    return send_from_directory('views', 'index.html')
+    return send_from_directory('vista', 'index.html')
 
 
 # ============================================================
