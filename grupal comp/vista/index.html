@@ -1,0 +1,704 @@
+<!-- index.html - Frontend del compilador -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Compilador - Motor de Reportes de Vulnerabilidades | Ingenieria de Software</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f4fc 0%, #e9eef5 100%);
+            font-family: 'Segoe UI', 'Roboto', 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 30px 20px;
+            color: #0a1c2f;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(0px);
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .header {
+            background: #0b2b44;
+            background-image: linear-gradient(135deg, #0a2a3e 0%, #0f3b55 100%);
+            padding: 1.8rem 2.5rem;
+            color: white;
+            border-bottom: 4px solid #3b9eff;
+        }
+
+        .header h1 {
+            margin: 0 0 0.3rem 0;
+            font-weight: 700;
+            font-size: 1.9rem;
+            letter-spacing: -0.3px;
+        }
+
+        .header .sub {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            background: #1f6392;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-bar {
+            background: #e8f0fe;
+            padding: 8px 20px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dce5ef;
+        }
+
+        .status-online {
+            color: #2e7d32;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-offline {
+            color: #c62828;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            background: #f8fafd;
+            border-bottom: 1px solid #dce5ef;
+            padding-left: 1.2rem;
+            gap: 0.25rem;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.9rem 1.8rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #2c5575;
+            border-radius: 12px 12px 0 0;
+            font-family: inherit;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #0f5b8c;
+            border-bottom: 3px solid #0f5b8c;
+            box-shadow: 0 -2px 6px rgba(0,0,0,0.02);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1.8rem 2rem;
+            background: white;
+            animation: fade 0.25s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(4px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 20px;
+            border: 1px solid #e2edf7;
+            background: #ffffff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        th {
+            background: #eef3fc;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 700;
+            color: #0a3b55;
+            border-bottom: 2px solid #cbdde9;
+        }
+
+        td {
+            padding: 10px 10px;
+            border-bottom: 1px solid #e9eff5;
+            color: #1e2f3c;
+        }
+
+        tr:hover td {
+            background: #f6fafe;
+        }
+
+        .lexema {
+            font-weight: 500;
+            color: #076678;
+        }
+
+        .token-type {
+            background: #e9f0f9;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #004e7c;
+        }
+
+        .editor-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .code-panel {
+            flex: 1.2;
+            min-width: 260px;
+        }
+
+        .results-panel {
+            flex: 1.8;
+            min-width: 300px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 280px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            padding: 1rem;
+            border-radius: 20px;
+            border: 1px solid #cce0ef;
+            background: #fefefe;
+            resize: vertical;
+            outline: none;
+            transition: 0.2s;
+            line-height: 1.45;
+        }
+
+        textarea:focus {
+            border-color: #3b9eff;
+            box-shadow: 0 0 0 2px rgba(59, 158, 255, 0.2);
+        }
+
+        button {
+            background: #083994;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.15s;
+            margin-top: 12px;
+            margin-right: 12px;
+            font-family: inherit;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        button:hover {
+            background: #7096ff;
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background: #9e9e9e;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #2c6e9e;
+        }
+        .btn-secondary:hover {
+            background: #205b84;
+        }
+
+        .card-metric {
+            background: #f8fbfe;
+            border-radius: 24px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.2rem;
+            border-left: 5px solid #2c5c9b;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .risk-critical { color: #b91c1c; background: #ffe6e6; padding: 2px 10px; border-radius: 40px; font-weight: bold;}
+        .risk-high { color: #c2410c; background: #ffefe5; border-radius: 40px; padding: 2px 10px;}
+        .risk-medium { color: #b45309; background: #fff0e0; border-radius: 40px;}
+        .risk-low { color: #3981bd; background: #e6f4ea; border-radius: 40px;}
+
+        .accion-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+        }
+        .accion-list li {
+            background: #f1f5f9;
+            margin: 6px 0;
+            padding: 8px 12px;
+            border-radius: 28px;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #083994;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            background: #f0f4fa;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.75rem;
+            color: #4a627a;
+            border-top: 1px solid #dce5ef;
+        }
+
+        @media (max-width: 800px) {
+            .editor-area { flex-direction: column; }
+            .tab-btn { padding: 0.7rem 1rem; font-size: 0.8rem;}
+            .header h1 { font-size: 1.4rem; }
+        }
+        
+        pre {
+            background: #1e2a36;
+            color: #ddd;
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            overflow-x: auto;
+            max-height: 200px;
+        }
+        
+        .code-block {
+            background: #1e2a36;
+            color: #e0e0e0;
+            padding: 12px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Motor de Reportes | Compilador de Vulnerabilidades</h1>
+        <div class="sub">
+            <span>Analisis Lexico -> Sintactico -> Semantico -> Generacion de acciones</span>
+        </div>
+    </div>
+    <div class="status-bar">
+        <span id="backendStatus" class="status-offline">🔴 Conectando al servidor...</span>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="compiler">Compilador interactivo</button>
+        <button class="tab-btn" data-tab="ats">ATS (Sintactico)</button>
+        <button class="tab-btn" data-tab="semantico">Verificacion de consistencia (Semantico)</button>
+    </div>
+
+    <!-- PESTANIA PRINCIPAL: COMPILADOR -->
+    <div id="compiler" class="tab-content active">
+        <div class="editor-area">
+            <div class="code-panel">
+                <label style="font-weight: 700; margin-bottom: 6px; display: block;">Entrada (codigo/reporte de vulnerabilidades)</label>
+                <textarea id="inputCode" placeholder='Ejemplo: int cve_score = 9; string cve_id = "CVE-2024-6387"; if (cve_score > 7) { alert("critico"); }'>int cve_score = 9;
+string cve_id = "CVE-2024-6387";
+if (cve_score > 7) {
+    alert("critico");
+}
+float cvss = 9.8;
+bool is_critical = true;
+char level = 'A';
+// Se identifico vulnerabilidad CVE-2024-6387 con puntaje 9.8 critica</textarea>
+                <div>
+                    <button id="compileBtn">Compilar y Generar reporte</button>
+                    <button id="resetExample" class="btn-secondary">Restaurar ejemplo</button>
+                </div>
+                <p style="font-size: 12px; color: #537a9a; margin-top: 12px;">El compilador realiza analisis lexico (tokens: palabra_reservada, identificador, numero, operador, string, delimitador), sintactico (ATS) y semantico (verificacion de tipos de datos) + acciones de mitigacion.</p>
+            </div>
+            <div class="results-panel">
+                <div class="card-metric">
+                    <strong>Resumen ejecutivo</strong>
+                    <div id="summaryArea" style="margin-top: 8px;">-- presiona "Compilar" --</div>
+                </div>
+                <div style="background: #fefaf0; border-radius: 20px; padding: 1rem;">
+                    <strong>Acciones automatizadas de mitigacion</strong>
+                    <ul id="actionsList" class="accion-list"><li>Esperando compilacion</li></ul>
+                </div>
+                <div style="margin-top: 16px;">
+                    <details>
+                        <summary style="cursor: pointer; font-weight: 600;">Ver vulnerabilidades procesadas (JSON)</summary>
+                        <pre id="jsonOutput" style="background:#1e2a36; color:#ddd; padding: 12px; border-radius: 16px; font-size: 11px; overflow-x: auto; max-height: 200px;">{}</pre>
+                    </details>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top: 20px; border-top: 1px solid #e2edf7; padding-top: 18px;">
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                <div><strong>Tokens identificados</strong></div>
+                <div><span id="tokenCount">0</span> tokens totales</div>
+            </div>
+            <div class="table-wrapper" style="max-height: 280px; overflow-y: auto;">
+                <table id="tokenTableVisual">
+                    <thead>
+                        <tr><th>#</th><th>Tipo</th><th>Lexema</th><th>Linea</th><th>Columna</th></tr>
+                    </thead>
+                    <tbody id="tokenTableBody">
+                        <tr><td colspan="5">Compila para visualizar tokens</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PESTANIA ATS (SINTACTICO) -->
+    <div id="ats" class="tab-content">
+        <h3>Arbol de Sintaxis Abstracta (ATS) - Analisis Sintactico</h3>
+        <div class="table-wrapper">
+            <pre id="astOutput" class="code-block">-- Compilar para generar el ATS --</pre>
+        </div>
+        <p style="margin-top: 1rem;">El analisis sintactico construye el ATS basado en la gramatica del lenguaje. Se identifican estructuras como declaraciones de variables, condicionales, asignaciones, etc.</p>
+    </div>
+
+    <!-- PESTAÑA VERIFICACION DE CONSISTENCIA DE TIPOS DE DATOS -->
+    <div id="semantico" class="tab-content">
+        <h3>Verificacion de consistencia de tipos de datos - Analisis Semantico</h3>
+        <div class="table-wrapper">
+            <pre id="semanticOutput" class="code-block">-- Compilar para verificar tipos --</pre>
+        </div>
+        <div class="card-metric" style="margin-top: 1rem;">
+            <strong>Reglas semanticas aplicadas:</strong>
+            <ul>
+                <li>Compatibilidad de tipos en asignaciones (int = int, string = string, etc.)</li>
+                <li>Verificacion de tipos en operadores aritmeticos y logicos</li>
+                <li>Coherencia de tipos de datos declarados</li>
+                <li>Deteccion de incompatibilidades de tipos</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // CONFIGURACION
+    // ============================================================
+    const API_URL = 'http://localhost:5000/api';
+    let backendAvailable = false;
+
+    // ============================================================
+    // FUNCIONES DE RENDERIZADO
+    // ============================================================
+    function escapeHtml(str) { 
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m){
+            if(m === '&') return '&amp;';
+            if(m === '<') return '&lt;';
+            if(m === '>') return '&gt;';
+            return m;
+        }); 
+    }
+
+    function formatAST(node, indent = 0) {
+        if (!node) return "null";
+        
+        let spaces = "  ".repeat(indent);
+        let result = "";
+        
+        if (node.type === "Programa") {
+            result = spaces + "Programa\n";
+            for (let child of (node.children || [])) {
+                result += formatAST(child, indent + 1);
+            }
+        } else if (node.type === "Declaration") {
+            result = spaces + `Declaracion: ${node.dataType} ${node.identifier}`;
+            if (node.value) result += ` = ${formatAST(node.value, 0)}`;
+            result += "\n";
+        } else if (node.type === "Assignment") {
+            result = spaces + `Asignacion: ${node.identifier} = ${formatAST(node.value, 0)}\n`;
+        } else if (node.type === "IfStatement") {
+            result = spaces + `If (${formatAST(node.condition, 0)})\n`;
+            result += spaces + "  Then:\n" + formatAST(node.thenBranch, indent + 2);
+            if (node.elseBranch) {
+                result += spaces + "  Else:\n" + formatAST(node.elseBranch, indent + 2);
+            }
+        } else if (node.type === "Block") {
+            result = spaces + "Bloque {\n";
+            for (let stmt of (node.statements || [])) {
+                result += formatAST(stmt, indent + 1);
+            }
+            result += spaces + "}\n";
+        } else if (node.type === "BinaryOperation") {
+            result = `(${formatAST(node.left, 0)} ${node.operator} ${formatAST(node.right, 0)})`;
+        } else if (node.type === "NumberLiteral") {
+            result = node.value;
+        } else if (node.type === "StringLiteral") {
+            result = node.value;
+        } else if (node.type === "BooleanLiteral") {
+            result = node.value;
+        } else if (node.type === "Identifier") {
+            result = node.name;
+        } else if (node.type === "ReturnStatement") {
+            result = spaces + `Return ${formatAST(node.value, 0)}\n`;
+        } else if (node.type === "WhileStatement") {
+            result = spaces + `While (${formatAST(node.condition, 0)})\n`;
+            result += formatAST(node.body, indent + 1);
+        } else if (node.type === "Unknown") {
+            result = spaces + `[Desconocido: ${node.value}]\n`;
+        } else if (typeof node === "object" && node !== null) {
+            result = spaces + JSON.stringify(node);
+        } else if (node) {
+            result = String(node);
+        } else {
+            result = "null";
+        }
+        return result;
+    }
+
+    function renderCompilacion(data) {
+        const { tokens, ast, semanticResult, vulnerabilidades, resumen, accionesUnicas } = data;
+        
+        // Tabla de tokens
+        const tbody = document.getElementById("tokenTableBody");
+        if (!tokens || tokens.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">No se encontraron tokens</td></tr>';
+        } else {
+            tbody.innerHTML = tokens.slice(0, 80).map((tok, idx) => `
+                <tr>
+                    <td>${idx+1}</td>
+                    <td><span class="token-type">${tok.tipo}</span></td>
+                    <td class="lexema">${escapeHtml(tok.lexema)}</td>
+                    <td>${tok.linea}</td>
+                    <td>${tok.columna}</td>
+                </tr>
+            `).join('');
+        }
+        document.getElementById("tokenCount").innerText = tokens ? tokens.length : 0;
+        
+        // Resumen
+        const summaryDiv = document.getElementById("summaryArea");
+        summaryDiv.innerHTML = `
+            <div><strong>Total vulnerabilidades:</strong> ${resumen.total_vulnerabilidades}</div>
+            <div><strong>Criticas:</strong> ${resumen.criticas}</div>
+            <div><strong>Errores semanticos:</strong> ${resumen.errores_semanticos}</div>
+            <div><strong>Advertencias semanticas:</strong> ${resumen.advertencias_semanticas}</div>
+            <div><strong>Recomendacion:</strong> ${resumen.recomendacion_general}</div>
+        `;
+        
+        // Acciones
+        const actionsUl = document.getElementById("actionsList");
+        if (!accionesUnicas || accionesUnicas.length === 0) {
+            actionsUl.innerHTML = "<li>No se requieren acciones inmediatas</li>";
+        } else {
+            actionsUl.innerHTML = accionesUnicas.map(act => `<li>${escapeHtml(act)}</li>`).join('');
+        }
+        
+        // JSON
+        const jsonPre = document.getElementById("jsonOutput");
+        jsonPre.textContent = JSON.stringify({ resumen, vulnerabilidades_detalle: vulnerabilidades, verificacion_tipos: semanticResult }, null, 2);
+        
+        // ATS
+        const astOutput = document.getElementById("astOutput");
+        astOutput.textContent = formatAST(ast);
+        
+        // Semantico
+        const semanticOutput = document.getElementById("semanticOutput");
+        let semanticText = "VERIFICACION DE CONSISTENCIA DE TIPOS DE DATOS\n";
+        semanticText += "=========================================\n\n";
+        semanticText += "Tabla de simbolos (variables declaradas):\n";
+        if (semanticResult.symbolTable) {
+            for (const [name, info] of Object.entries(semanticResult.symbolTable)) {
+                semanticText += `  ${name} : ${info.type}\n`;
+            }
+        }
+        semanticText += "\nErrores semanticos:\n";
+        if (!semanticResult.errors || semanticResult.errors.length === 0) {
+            semanticText += "  Ningun error detectado\n";
+        } else {
+            for (let err of semanticResult.errors) {
+                semanticText += `  [ERROR] ${err}\n`;
+            }
+        }
+        semanticText += "\nAdvertencias semanticas:\n";
+        if (!semanticResult.warnings || semanticResult.warnings.length === 0) {
+            semanticText += "  Ninguna advertencia\n";
+        } else {
+            for (let warn of semanticResult.warnings) {
+                semanticText += `  [ADVERTENCIA] ${warn}\n`;
+            }
+        }
+        semanticOutput.textContent = semanticText;
+    }
+
+    // ============================================================
+    // COMUNICACION CON BACKEND
+    // ============================================================
+    async function checkBackendHealth() {
+        const statusSpan = document.getElementById("backendStatus");
+        const compileBtn = document.getElementById("compileBtn");
+        
+        try {
+            const response = await fetch(`${API_URL}/health`);
+            if (response.ok) {
+                backendAvailable = true;
+                statusSpan.innerHTML = "🟢 Conectado al servidor";
+                statusSpan.className = "status-online";
+                compileBtn.disabled = false;
+                return true;
+            } else {
+                throw new Error("Servidor no responde");
+            }
+        } catch (error) {
+            backendAvailable = false;
+            statusSpan.innerHTML = "🔴 Servidor no disponible - Inicie el backend con 'python app.py'";
+            statusSpan.className = "status-offline";
+            compileBtn.disabled = true;
+            return false;
+        }
+    }
+
+    async function compilarCodigo(codigo) {
+        if (!backendAvailable) {
+            await checkBackendHealth();
+            if (!backendAvailable) {
+                alert("El backend no está disponible. Asegúrese de ejecutar 'python app.py' en la terminal.");
+                return null;
+            }
+        }
+
+        const compileBtn = document.getElementById("compileBtn");
+        const originalText = compileBtn.innerHTML;
+        compileBtn.innerHTML = 'Compilando... <span class="loading"></span>';
+        compileBtn.disabled = true;
+
+        try {
+            const response = await fetch(`${API_URL}/compilar`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ codigo: codigo })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+
+            const data = await response.json();
+            renderCompilacion(data);
+            return data;
+        } catch (error) {
+            console.error('Error al compilar:', error);
+            alert(`Error al compilar: ${error.message}\n\nAsegúrese de que el backend esté ejecutándose en http://localhost:5000`);
+            return null;
+        } finally {
+            compileBtn.innerHTML = originalText;
+            compileBtn.disabled = false;
+        }
+    }
+
+    // ============================================================
+    // INICIALIZACION
+    // ============================================================
+    const textarea = document.getElementById("inputCode");
+    const compileBtn = document.getElementById("compileBtn");
+    const resetBtn = document.getElementById("resetExample");
+    const defaultExample = `int cve_score = 9;
+string cve_id = "CVE-2024-6387";
+if (cve_score > 7) {
+    alert("critico");
+}
+float cvss = 9.8;
+bool is_critical = true;
+char level = 'A';
+// Se identifico vulnerabilidad CVE-2024-6387 con puntaje 9.8 critica.
+// Adicionalmente CVE-2023-4863 con CVSS 7.5 prioridad alta.`;
+
+    async function updateCompilation() { 
+        await compilarCodigo(textarea.value); 
+    }
+    
+    compileBtn.addEventListener("click", updateCompilation);
+    resetBtn.addEventListener("click", () => { 
+        textarea.value = defaultExample; 
+        updateCompilation(); 
+    });
+    
+    textarea.value = defaultExample;
+    
+   // Verificar backend al cargar (PERO SIN COMPILAR)
+checkBackendHealth().then(() => {
+    // NO llamamos a updateCompilation() aquí
+    // Solo verificamos que el backend esté disponible
+    console.log("Backend listo. Esperando acción del usuario.");
+});
+
+// Mostrar mensaje inicial en el resumen
+document.getElementById("summaryArea").innerHTML = `
+    <div><strong>Backend conectado</strong></div>
+    <div>Presiona "Compilar" para analizar el código</div>
+`;
+    // Tabs
+    const tabs = document.querySelectorAll(".tab-btn");
+    tabs.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const tabId = btn.getAttribute("data-tab");
+            document.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
+            document.getElementById(tabId).classList.add("active");
+            tabs.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+        });
+    });
+
+    // Revisar salud del backend cada 30 segundos
+    setInterval(checkBackendHealth, 30000);
+</script>
+</body>
+</html>
