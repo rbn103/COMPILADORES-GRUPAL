@@ -5,7 +5,7 @@ import sys
 # Agregar el directorio actual al path de Python
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 
 # Cambiar la forma de importar - importación directa
@@ -51,12 +51,7 @@ def servir_index():
     """
     Sirve el archivo index.html desde la carpeta views
     """
-    import os
-    template_path = os.path.join('views', 'index.html')
-    if os.path.exists(template_path):
-        return send_from_directory('views', 'index.html')
-    else:
-        return jsonify({'error': 'index.html no encontrado'}), 404
+    return render_template('index.html')
 
 
 # ============================================================
