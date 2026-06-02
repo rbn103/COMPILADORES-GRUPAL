@@ -9,14 +9,6 @@ from modelo.Semantico import SemanticAnalyzer
 from modelo.Tokens import TOKEN_TYPES
 
 class CompiladorController:
-    """
-    Controlador del Compilador - Orquesta el flujo de compilación
-    
-    En el patrón MVC, esto es un CONTROLADOR porque:
-    - Recibe peticiones (código fuente)
-    - Coordina los modelos (Léxico, Sintáctico, Semántico)
-    - Prepara la respuesta (datos para la vista)
-    """
     
     def __init__(self):
         """Inicializa el controlador"""
